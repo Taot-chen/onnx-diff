@@ -27,7 +27,8 @@ REQUIRED = [
     "GraKeL>=0.1.9,<0.2.0",
     "colorama>=0.4.6,<0.5.0",
     "numpy>=1.24.1,<2.0.0",
-    "tabulate>=0.9.0,<0.10.0"
+    "tabulate>=0.9.0,<0.10.0",
+    "dataclasses>=0.6"
 ]
 
 # What packages are optional?
