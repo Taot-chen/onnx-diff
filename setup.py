@@ -14,7 +14,7 @@ from setuptools import find_packages, setup, Command
 NAME = 'onnxdiff'
 DESCRIPTION = 'Comparison of onnx models by structure, parameters and onnxruntime'
 URL = 'git@github.com:Taot-chen/onnx-diff.git'
-EMAIL = 'oehuosi@qq.com'
+EMAIL = 'oehuosi@oehuosi.com'
 AUTHOR = 'oehuosi'
 REQUIRES_PYTHON = '>=3.8'
 VERSION = '0.1.1'
