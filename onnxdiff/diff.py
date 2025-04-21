@@ -13,9 +13,10 @@ if __name__ == "__main__":
 
     assert(args.onnx_a[-5:] == ".onnx" and args.onnx_b[-5:] == ".onnx"), f"onnx_a and onnx_b are both expected path end with \'.onnx\'"
     
-    if args.ort:
-        verify_result = verify_outputs(args.onnx_a, args.onnx_b)
-        print("model outputs verify complete: ", verify_result)
     if args.struct:
         differ = OnnxDiff(onnx.load(args.onnx_a), onnx.load(args.onnx_b))
         results = differ.summary(output=True)
+
+    if args.ort:
+        verify_result = verify_outputs(args.onnx_a, args.onnx_b)
+        print("model outputs verify complete: ", verify_result)

@@ -79,7 +79,9 @@ def onnxruntime_infer(
         {输出名称: 输出值} 的字典
     """
 
-    session = ort.InferenceSession(onnx_path)
+    options = ort.SessionOptions()
+    options.log_severity_level = 3  # 3=ERROR, 2=WARNING（默认）, 1=INFO, 0=VERBOSE
+    session = ort.InferenceSession(onnx_path, sess_options=options)
     input_dict = {}
     for input_info in session.get_inputs():
         shape = handle_dynamic_shape(input_info.shape, dynamic_override)
