@@ -1,5 +1,5 @@
 import argparse
-from utils import memory_efficient_cosine
+from utils import memory_efficient_cosine, print_ort_results
 
 import onnxruntime as ort
 import  numpy as np
@@ -100,14 +100,17 @@ def verify_outputs(
 ) -> bool:
     outputs_a = onnxruntime_infer(onnx_a)
     outputs_b = onnxruntime_infer(onnx_b)
+    output_results = {}
     if outputs_a.keys() != outputs_b.keys():
         return False
     else:
         for output_name in outputs_a.keys():
             cosine_sim = memory_efficient_cosine(outputs_a[output_name].flatten(), outputs_b[output_name].flatten())
+            output_results[output_name] = np.round(cosine_sim, 6)
             if cosine_sim < 0.99:
                 print(f"output {output_name} not match --> cosine_sim: {cosine_sim}")
                 return False
+    print_ort_results(output_results)
     return True
 
 

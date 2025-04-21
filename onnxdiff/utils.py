@@ -84,3 +84,17 @@ def memory_efficient_cosine(a: np.ndarray, b: np.ndarray) -> float:
 
     return dot_product / (np.sqrt(norm_a) * np.sqrt(norm_b) + 1e-10)
 
+
+def print_ort_results(results: dict) -> None:
+    text = "\nOnnxRuntime results:\n"
+    print(text)
+    data = []
+    for key in results.keys():
+        status = Status.Success if results[key] >= 0.99 else Status.Error
+        data.append(
+            [
+                f"Output.{key.capitalize()}",
+                color(text=str(results[key]), status=status),
+            ]
+        )
+    print(tabulate(data, headers=["Output Nodes", "Cosine_Sim"], tablefmt="rounded_outline"))
