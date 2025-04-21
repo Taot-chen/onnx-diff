@@ -1,2 +1,2 @@
 # onnxdiff
-Comparison of onnx models by structure, parameters and onnxruntime
+Comparison of onnx models by structure, initializers and onnxruntime
