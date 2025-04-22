@@ -11,9 +11,9 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'onnxdiff'
+NAME = 'onnxdiffer'
 DESCRIPTION = 'Comparison of onnx models by structure, parameters and onnxruntime'
-URL = 'git@github.com:Taot-chen/onnx-diff.git'
+URL = 'https://github.com/Taot-chen/onnx-diff'
 EMAIL = 'oehuosi@oehuosi.com'
 AUTHOR = 'oehuosi'
 REQUIRES_PYTHON = '>=3.8'
@@ -91,9 +91,9 @@ class UploadCommand(Command):
         self.status('Uploading the package to PyPI via Twine…')
         os.system('twine upload dist/*')
 
-        self.status('Pushing git tags…')
-        os.system('git tag v{0}'.format(about['__version__']))
-        os.system('git push --tags')
+        # self.status('Pushing git tags…')
+        # os.system('git tag v{0}'.format(about['__version__']))
+        # os.system('git push --tags')
 
         sys.exit()
 
@@ -121,7 +121,7 @@ setup(
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
-    license='Apache-2.0',
+    # license='Apache-2.0',
     classifiers=[
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers

@@ -115,7 +115,7 @@ model outputs verify complete:  False
 ### 3.1 Install from pip
 
 ```bash
-python3 -m pip install onnxdiff
+python3 -m pip install onnxdiffer
 ```
 
 
