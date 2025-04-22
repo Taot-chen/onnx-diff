@@ -17,7 +17,7 @@ URL = 'git@github.com:Taot-chen/onnx-diff.git'
 EMAIL = 'oehuosi@oehuosi.com'
 AUTHOR = 'oehuosi'
 REQUIRES_PYTHON = '>=3.8'
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -116,7 +116,7 @@ setup(
     # packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     # If your package is a single module, use this instead of 'packages':
     entry_points={
-        'console_scripts': ['onnxdiff = onnxdiff.main:main'],
+        'console_scripts': ['onnxdiff = onnxdiff.diff:main'],
     },
     install_requires=REQUIRED,
     extras_require=EXTRAS,

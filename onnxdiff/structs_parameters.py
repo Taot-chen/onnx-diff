@@ -5,7 +5,7 @@ from onnx import ModelProto
 from grakel import Graph
 from grakel.kernels import ShortestPath
 from copy import deepcopy
-from utils import print_summary, SummaryResults
+from onnxdiff.utils import print_summary, SummaryResults
 
 @dataclass
 class Matches:

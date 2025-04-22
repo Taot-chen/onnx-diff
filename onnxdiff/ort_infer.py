@@ -1,8 +1,8 @@
 import argparse
-from utils import memory_efficient_cosine, print_ort_results
+from onnxdiff.utils import memory_efficient_cosine, print_ort_results
 
 import onnxruntime as ort
-import  numpy as np
+import numpy as np
 from typing import Dict
 
 def onnx_type_to_numpy(onnx_type: str) -> np.dtype:

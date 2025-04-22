@@ -110,6 +110,61 @@ model outputs verify complete:  False
 ```
 
 
+## 3 Install
+
+### 3.1 Install from pip
+
+```bash
+python3 -m pip install onnxdiff
+```
+
+
+### 3.2 Install from source code
+
+```bash
+git clone https://github.com/Taot-chen/onnx-diff.git
+cd onnx-diff
+python3 setup.py sdist bdist_wheel
+python3 -m pip install ./dist/*.whl
+```
+
+
+
+
+## 4 How To Use
+
+### 4.1 Use in Console
+
+```bash
+onnxdiff --onnx_a=/path/to/onnx_a.onnx --onnx_b=/path/to/onnx_b.onnx --ort=1 --detial=1
+```
+
+more params:
+
+```bash
+onnxdiff --help
+usage: onnxdiff [-h] [--onnx_a ONNX_A] [--onnx_b ONNX_B] [--struct STRUCT] [--ort ORT] [--detial DETIAL] [--random_seed RANDOM_SEED]
+
+options:
+  -h, --help            show this help message and exit
+  --onnx_a ONNX_A       ONNX model a to compare
+  --onnx_b ONNX_B       ONNX model b to compare
+  --struct STRUCT       compare with structs and parameters
+  --ort ORT             compare with onnxruntime
+  --detial DETIAL       show detials while mismatch
+  --random_seed RANDOM_SEED
+                        random seeed for random input
+```
+
+
+### 4.2 Use in python
+
+```python
+import onnxdiff
+ret = onnxdiff.differ("/path/to/onnx_a.onnx", "/path/to/onnx_b.onnx")
+print("ret: ", ret)
+```
+
 
 ## Features
 
@@ -117,6 +172,7 @@ model outputs verify complete:  False
 - [x] onnxruntime
 - [x] not match details
 - [x] standardize output
-- [ ] for pypi wheel
-    - [ ] interface
-    - [ ] console command
+- [x] for pypi wheel
+    - [x] interface
+    - [x] console command
+- [ ] Performance Optimization
