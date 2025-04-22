@@ -9,6 +9,8 @@ if __name__ == "__main__":
     parser.add_argument("--onnx_b", default="./", type=str, help="ONNX model b to compare")
     parser.add_argument("--struct", default=1, type=int, help="compare with structs and parameters")
     parser.add_argument("--ort", default=0, type=int, help="compare with onnxruntime")
+    parser.add_argument("--detial", default=0, type=int, help="show detials while mismatch")
+    parser.add_argument("--random_seed", default=0, type=int, help="random seeed for random input")
     args = parser.parse_args()
 
     assert(args.onnx_a[-5:] == ".onnx" and args.onnx_b[-5:] == ".onnx"), f"onnx_a and onnx_b are both expected path end with \'.onnx\'"
@@ -18,5 +20,10 @@ if __name__ == "__main__":
         results = differ.summary(output=True)
 
     if args.ort:
-        verify_result = verify_outputs(args.onnx_a, args.onnx_b)
+        verify_result = verify_outputs(
+            args.onnx_a,
+            args.onnx_b,
+            random_seed = args.random_seed,
+            detial = args.detial
+        )
         print("model outputs verify complete: ", verify_result)

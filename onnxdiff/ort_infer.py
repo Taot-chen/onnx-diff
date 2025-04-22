@@ -96,22 +96,62 @@ def onnxruntime_infer(
 def verify_outputs(
     onnx_a: str,
     onnx_b: str,
-    random_seed: int = 0
+    random_seed: int = 0,
+    detial: int = 0
 ) -> bool:
     outputs_a = onnxruntime_infer(onnx_a)
     outputs_b = onnxruntime_infer(onnx_b)
     output_results = {}
-    if outputs_a.keys() != outputs_b.keys():
-        return False
+    detials_a = {}
+    detials_b = {}
+    detials = {}
+    matched = True
+    if not detial:
+        if outputs_a.keys() != outputs_b.keys():
+            print("\nModel output number mismatched")
+            matched = False
+        else:
+            for output_name in outputs_a.keys():
+                cosine_sim = memory_efficient_cosine(outputs_a[output_name].flatten(), outputs_b[output_name].flatten())
+                output_results[output_name] = np.round(cosine_sim, 6)
+                if cosine_sim < 0.99:
+                    output_results[output_name] = np.round(cosine_sim, 6)
+                    print(f"output {output_name} not match --> cosine_sim: {cosine_sim}")
+                    matched = False
     else:
-        for output_name in outputs_a.keys():
-            cosine_sim = memory_efficient_cosine(outputs_a[output_name].flatten(), outputs_b[output_name].flatten())
-            output_results[output_name] = np.round(cosine_sim, 6)
-            if cosine_sim < 0.99:
-                print(f"output {output_name} not match --> cosine_sim: {cosine_sim}")
-                return False
-    print_ort_results(output_results)
-    return True
+        if outputs_a.keys() != outputs_b.keys():
+            print("\nModel output number mismatched")
+            matched = False
+            for key in outputs_a.keys():
+                detials_a[key] = np.shape(outputs_a[key])
+            for key in outputs_b.keys():
+                detials_b[key] = np.shape(outputs_b[key])
+            print_ort_results(
+                detials_a,
+                header1 = "Output Nodes",
+                header2 = "Output Shape"
+            )
+            print_ort_results(
+                detials_b,
+                header1 = "Output Nodes",
+                header2 = "Output Shape"
+            )
+        else:
+            for output_name in outputs_a.keys():
+                cosine_sim = memory_efficient_cosine(outputs_a[output_name].flatten(), outputs_b[output_name].flatten())
+                output_results[output_name] = np.round(cosine_sim, 6)
+                if cosine_sim < 0.99:
+                    output_results[output_name] = np.round(cosine_sim, 6)
+                    print(f"output {output_name} not match --> cosine_sim: {cosine_sim}")
+                    matched = False
+    if output_results:
+        print_ort_results(
+            output_results,
+            header1 = "Output Nodes",
+            header2 = "Cosine_Sim",
+            set_status = 1
+        )
+    return matched
 
 
 if __name__ == "__main__":
