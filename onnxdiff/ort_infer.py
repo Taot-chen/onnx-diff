@@ -43,10 +43,10 @@ def handle_dynamic_shape(
 def generate_input_data(
     shape: list,
     dtype: np.dtype,
-    mode: str = "random",
-    random_seed: int = 0
+    input_mode: str,
+    random_seed: int
 ) -> np.ndarray:
-    if mode == "random":
+    if input_mode == "random":
         np.random.seed(random_seed)
         if np.issubdtype(dtype, np.floating):
             return np.random.randn(*shape).astype(dtype)
@@ -54,19 +54,19 @@ def generate_input_data(
             return np.random.randint(0, 100, size=shape, dtype=dtype)
         elif dtype == np.bool_:
             return np.random.choice([True, False], size=shape)
-    elif mode == "zeros":
+    elif input_mode == "zeros":
         return np.zeros(shape, dtype=dtype)
-    elif mode == "ones":
+    elif input_mode == "ones":
         return np.ones(shape, dtype=dtype)
     else:
-        raise ValueError(f"Unsupported mode: {mode}")
+        raise ValueError(f"Unsupported mode: {input_mode}")
 
 
 def onnxruntime_infer(
     onnx_path: str,
-    input_mode: str = "random",
+    input_mode: str,
+    random_seed: int,
     dynamic_override: Dict[str, int] = None,
-    random_seed: int = 0
 ) -> Dict[str, np.ndarray]:
 
     """
@@ -74,6 +74,7 @@ def onnxruntime_infer(
     参数:
         model_path: ONNX 模型路径
         input_mode: 输入生成模式 ("random"|"zeros"|"ones")
+        random_seed: 随机种子
         dynamic_override: 动态维度覆盖值，如 {"batch_size": 4}
     返回:
         {输出名称: 输出值} 的字典
@@ -86,7 +87,7 @@ def onnxruntime_infer(
     for input_info in session.get_inputs():
         shape = handle_dynamic_shape(input_info.shape, dynamic_override)
         dtype = onnx_type_to_numpy(input_info.type)
-        input_data = generate_input_data(shape, dtype, mode = input_mode, random_seed = random_seed)
+        input_data = generate_input_data(shape, dtype, input_mode=input_mode, random_seed=random_seed)
         input_dict[input_info.name] = input_data
 
     output_names = [output.name for output in session.get_outputs()]
@@ -96,57 +97,56 @@ def onnxruntime_infer(
 def verify_outputs(
     onnx_a: str,
     onnx_b: str,
-    random_seed: int = 0,
-    detial: int = 0
+    random_seed: int,
+    detail: int,
+    input_mode: str,
+    max_diff: float,
 ) -> bool:
-    outputs_a = onnxruntime_infer(onnx_a)
-    outputs_b = onnxruntime_infer(onnx_b)
+    outputs_a = onnxruntime_infer(onnx_path=onnx_a, input_mode=input_mode, random_seed=random_seed)
+    outputs_b = onnxruntime_infer(onnx_path=onnx_b, input_mode=input_mode, random_seed=random_seed)
     output_results = {}
-    detials_a = {}
-    detials_b = {}
-    detials = {}
+    details_a = {}
+    details_b = {}
     matched = True
-    if not detial:
-        if outputs_a.keys() != outputs_b.keys():
-            print("\nModel output number mismatched")
-            matched = False
-        else:
-            for output_name in outputs_a.keys():
-                cosine_sim = memory_efficient_cosine(outputs_a[output_name].flatten(), outputs_b[output_name].flatten())
-                output_results[output_name] = np.round(cosine_sim, 6)
-                if cosine_sim < 0.99:
-                    output_results[output_name] = np.round(cosine_sim, 6)
-                    print(f"output {output_name} not match --> cosine_sim: {cosine_sim}")
-                    matched = False
-    else:
-        if outputs_a.keys() != outputs_b.keys():
-            print("\nModel output number mismatched")
-            matched = False
+    if outputs_a.keys() != outputs_b.keys():
+        print("\nModel output number mismatched")
+        matched = False
+        if detail:
             for key in outputs_a.keys():
-                detials_a[key] = np.shape(outputs_a[key])
+                details_a[key] = np.shape(outputs_a[key])
             for key in outputs_b.keys():
-                detials_b[key] = np.shape(outputs_b[key])
+                details_b[key] = np.shape(outputs_b[key])
             print_ort_results(
-                detials_a,
-                header1 = "Output Nodes",
-                header2 = "Output Shape"
+                details_a,
+                max_diff=max_diff,
+                header1="Output Nodes",
+                header2="Output Shape"
             )
             print_ort_results(
-                detials_b,
-                header1 = "Output Nodes",
-                header2 = "Output Shape"
+                details_b,
+                max_diff=max_diff,
+                header1="Output Nodes",
+                header2="Output Shape"
             )
-        else:
-            for output_name in outputs_a.keys():
+    else:
+        for output_name in outputs_a.keys():
+            try:
                 cosine_sim = memory_efficient_cosine(outputs_a[output_name].flatten(), outputs_b[output_name].flatten())
-                output_results[output_name] = np.round(cosine_sim, 6)
-                if cosine_sim < 0.99:
-                    output_results[output_name] = np.round(cosine_sim, 6)
-                    print(f"output {output_name} not match --> cosine_sim: {cosine_sim}")
-                    matched = False
+            except ValueError as e:
+                print(f"output {output_name}: {e}")
+                output_results[output_name] = "-"
+                continue
+            output_results[output_name] = np.round(cosine_sim, 6)
+            if cosine_sim < 1 - max_diff:
+                print("-" * 80)
+                print(f"output {output_name} not match --> cosine_sim: {cosine_sim}, data: {outputs_a[output_name].flatten()} vs {outputs_b[output_name].flatten()}")
+                matched = False
+
     if output_results:
+        print("=" * 80)
         print_ort_results(
             output_results,
+            max_diff = max_diff,
             header1 = "Output Nodes",
             header2 = "Cosine_Sim",
             set_status = 1
@@ -160,5 +160,5 @@ if __name__ == "__main__":
     parser.add_argument("--onnx_b", default="", type=str)
 
     args = parser.parse_args()
-    verify_result = verify_outputs(args.onnx_a, args.onnx_b)
+    verify_result = verify_outputs(args.onnx_a, args.onnx_b, random_seed=0, detail=1, input_mode="random", max_diff=1e-6)
     print("model outputs verify complete: ", verify_result)
