@@ -127,7 +127,7 @@ class OnnxDiff:
         except:
             return False
 
-    def summary(self, output=False) -> SummaryResults:
+    def summary(self, output=False):
         results = SummaryResults(
             exact_match=(self._model_a == self._model_b),
             score=self._calculate_score(),
@@ -138,4 +138,3 @@ class OnnxDiff:
         )
         if output:
             print_summary(results)
-        return results

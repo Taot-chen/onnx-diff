@@ -67,6 +67,9 @@ def print_summary(results: SummaryResults) -> None:
 
 
 def memory_efficient_cosine(a: np.ndarray, b: np.ndarray) -> float:
+    if np.all(a == 0) or np.all(b == 0):
+        raise ValueError("零向量无法计算相似度")
+
     """迭代计算避免一次性内存占用"""
     dot_product = 0.0
     norm_a = 0.0
@@ -82,21 +85,21 @@ def memory_efficient_cosine(a: np.ndarray, b: np.ndarray) -> float:
         norm_a += np.sum(chunk_a ** 2)
         norm_b += np.sum(chunk_b ** 2)
 
-    return dot_product / (np.sqrt(norm_a) * np.sqrt(norm_b) + 1e-10)
+    return dot_product / (np.sqrt(norm_a) * np.sqrt(norm_b) + 1e-20)
 
 
-def print_ort_results(results: dict, header1: str, header2: str, set_status: int = 0) -> None:
+def print_ort_results(results: dict, max_diff: float, header1: str, header2: str, set_status: int = 0) -> None:
     text = "\nOnnxRuntime results:\n"
     print(text)
     data = []
     for key in results.keys():
         status = Status.Warning
         if set_status:
-            status = Status.Success if results[key] >= 0.99 else Status.Error
+            status = Status.Success if (isinstance(results[key], float) and results[key] >= 1 - max_diff) else Status.Error
         data.append(
             [
                 f"Output.{key.capitalize()}",
                 color(text=str(results[key]), status=status),
             ]
         )
-    print(tabulate(data, headers=["Output Nodes", "Cosine_Sim"], tablefmt="rounded_outline"))
+    print(tabulate(data, headers=[header1, header2], tablefmt="rounded_outline"))
