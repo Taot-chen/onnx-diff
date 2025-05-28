@@ -170,9 +170,13 @@ print("ret: ", ret)
 
 - [x] struct & parameters
 - [x] onnxruntime
-- [x] not match details
+- [ ] not match details
+    - [ ] readable details for structrue
 - [x] standardize output
 - [x] for pypi wheel
     - [x] interface
     - [x] console command
 - [ ] Performance Optimization
+- [ ] Relay IR compare
+- [ ] MLIR compare
+
