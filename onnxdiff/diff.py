@@ -5,6 +5,27 @@ import onnx
 from onnxdiff.structs_parameters import OnnxDiff
 from onnxdiff.ort_infer import verify_outputs
 
+# here, all params are expected to have a default value, and can be used by py package
+def differ(onnx_a: str,
+    onnx_b: str,
+    struct: int = 1,
+    ort: int = 1,
+    detial: int = 1,
+    random_seed: int = 0
+) -> bool:
+    onnxdiffer = OnnxDiff(onnx.load(onnx_a), onnx.load(onnx_b))
+    onnxdiffer.summary(output=True)
+    verify_result = verify_outputs(
+            onnx_a,
+            onnx_b,
+            random_seed = random_seed,
+            detail = detial,
+            input_mode = "random",
+            max_diff = 1e-6
+        )
+    print("model outputs verify complete: ", verify_result)
+    return verify_result
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_a", default="./", type=str, help="ONNX model a to compare")
