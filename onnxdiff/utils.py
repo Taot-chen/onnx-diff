@@ -16,6 +16,7 @@ class SummaryResults:
     b_valid: bool  # True when model B passes ONNX checker.
     graph_matches: dict  # Items exactly the same, for all fields in graph.
     root_matches: dict  # Items exactly the same, for the fields in root (excluding the graph)
+    difference: dict # difference in struct
 
 class Status(Enum):
     Success = 0
@@ -38,7 +39,11 @@ def matches_string(count: int, total: int):
     return color(text=text, status=status)
 
 
-def print_summary(results: SummaryResults) -> None:
+def print_summary(results: SummaryResults, detail) -> None:
+    if detail and len(results.difference):
+        print("\nStruct details:\n")
+        for index in range(len(results.difference)):
+            print(f"Node --> {results.difference[index]['item']}")
     text = (
         "Exact Match"
         if results.exact_match and results.score == 1.0

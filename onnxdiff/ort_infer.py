@@ -111,11 +111,12 @@ def verify_outputs(
     if outputs_a.keys() != outputs_b.keys() and len(outputs_a.keys()) != len(outputs_b.keys()):
         print("\nModel output number mismatched")
         matched = False
+        for key in outputs_a.keys():
+            details_a[key] = np.shape(outputs_a[key])
+        for key in outputs_b.keys():
+            details_b[key] = np.shape(outputs_b[key])
         if detail:
-            for key in outputs_a.keys():
-                details_a[key] = np.shape(outputs_a[key])
-            for key in outputs_b.keys():
-                details_b[key] = np.shape(outputs_b[key])
+            print("\nOnnxRuntime details:\n")
             print_ort_results(
                 details_a,
                 max_diff=max_diff,
@@ -129,23 +130,27 @@ def verify_outputs(
                 header2="Output Shape"
             )
     else:
+        if detail:
+            print("\nOnnxRuntime details:\n")
         for index in range(len(outputs_a.keys())):
             output_name_a = list(outputs_a.keys())[index]
             output_name_b = list(outputs_b.keys())[index]
             try:
                 cosine_sim = memory_efficient_cosine(outputs_a[output_name_a].flatten(), outputs_b[output_name_b].flatten())
             except ValueError as e:
-                print(f"output {output_name_a}: {e}")
+                if detail:
+                    print(f"output {output_name_a}: {e}")
                 output_results[output_name_a] = "-"
                 continue
             output_results[output_name_a] = np.round(cosine_sim, 6)
             if cosine_sim < 1 - max_diff:
-                print("-" * 80)
-                print(f"output {output_name_a} not match --> cosine_sim: {cosine_sim}, data: {outputs_a[output_name_a].flatten()} vs {outputs_b[output_name_b].flatten()}")
                 matched = False
+                if detail:
+                    print("-" * 80)
+                    print(f"output {output_name_a} not match --> cosine_sim: {cosine_sim}, data: {outputs_a[output_name_a].flatten()} vs {outputs_b[output_name_b].flatten()}")
 
     if output_results:
-        print("=" * 80)
+        print("-" * 80)
         print_ort_results(
             output_results,
             max_diff = max_diff,

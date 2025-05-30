@@ -17,6 +17,7 @@ class OnnxDiff:
     def __init__(self, model_a: ModelProto, model_b: ModelProto):
         self._model_a = model_a
         self._model_b = model_b
+        self.difference: list = []
 
     def _onnx_to_edge_list(self, graph):
         nodes = graph.node
@@ -69,7 +70,7 @@ class OnnxDiff:
                 return True
         return False
 
-    def _match_items(self, a, b) -> Matches:
+    def _match_items(self, a, b, add_difference=True) -> Matches:
         a_items = deepcopy(a)
         b_items = deepcopy(b)
         a_total = len(a_items)
@@ -80,6 +81,12 @@ class OnnxDiff:
             a = a_items.pop()
             if self._safe_remove(b_items, a):
                 match_count += 1
+            elif add_difference and hasattr(a, "name"):
+                self.difference.append(
+                    {
+                        "item": a.name,
+                    }
+                )
 
         return Matches(same=match_count, a_total=a_total, b_total=b_total)
 
@@ -100,7 +107,7 @@ class OnnxDiff:
         a_graph = self._model_a.graph
         b_graph = self._model_b.graph
         return {
-            "initializers": self._match_items(a_graph.initializer, b_graph.initializer),
+            "initializers": self._match_items(a_graph.initializer, b_graph.initializer,add_difference = False),
             "inputs": self._match_items(a_graph.input, b_graph.input),
             "outputs": self._match_items(a_graph.output, b_graph.output),
             "nodes": self._match_items(a_graph.node, b_graph.node),
@@ -127,14 +134,15 @@ class OnnxDiff:
         except:
             return False
 
-    def summary(self, output=False):
+    def summary(self, output=False, detail=False):
         results = SummaryResults(
-            exact_match=(self._model_a == self._model_b),
-            score=self._calculate_score(),
-            a_valid=self._validate(self._model_a),
-            b_valid=self._validate(self._model_b),
-            graph_matches=self._calculate_graph_matches(),
-            root_matches=self._calculate_root_matches(),
+            exact_match = (self._model_a == self._model_b),
+            score = self._calculate_score(),
+            a_valid = self._validate(self._model_a),
+            b_valid = self._validate(self._model_b),
+            graph_matches = self._calculate_graph_matches(),
+            root_matches = self._calculate_root_matches(),
+            difference = self.difference
         )
         if output:
-            print_summary(results)
+            print_summary(results, detail)

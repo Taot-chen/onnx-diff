@@ -5,25 +5,31 @@ import onnx
 from onnxdiff.structs_parameters import OnnxDiff
 from onnxdiff.ort_infer import verify_outputs
 
-# here, all params are expected to have a default value, and can be used by py package
-def differ(onnx_a: str,
+def differ(
+    onnx_a: str,
     onnx_b: str,
     struct: int = 1,
     ort: int = 1,
-    detial: int = 1,
-    random_seed: int = 0
+    detail: int = 1,
+    input_mode: str = "random",
+    random_seed: int = 0,
+    max_diff: float = 1e-6
 ) -> bool:
-    onnxdiffer = OnnxDiff(onnx.load(onnx_a), onnx.load(onnx_b))
-    onnxdiffer.summary(output=True)
-    verify_result = verify_outputs(
+    verify_result = False
+    if struct:
+        onnxdiffer = OnnxDiff(onnx.load(onnx_a), onnx.load(onnx_b))
+        onnxdiffer.summary(output=True, detail=detail)
+        print("=" * 80)
+    if ort:
+        verify_result = verify_outputs(
             onnx_a,
             onnx_b,
             random_seed = random_seed,
-            detail = detial,
-            input_mode = "random",
+            detail = detail,
+            input_mode = input_mode,
             max_diff = 1e-6
         )
-    print("model outputs verify complete: ", verify_result)
+        print("OnnxRuntime verify complete: ", verify_result)
     return verify_result
 
 def main():
@@ -42,7 +48,7 @@ def main():
     
     if args.struct:
         onnx_differ = OnnxDiff(onnx.load(args.onnx_a), onnx.load(args.onnx_b))
-        onnx_differ.summary(output=True)
+        onnx_differ.summary(output=True, detail=args.detail)
         print("=" * 80)
 
     if args.ort:
@@ -54,7 +60,7 @@ def main():
             input_mode=args.input_mode,
             max_diff=args.max_diff,
         )
-        print("model outputs verify complete: ", verify_result)
+        print("OnnxRuntime verify complete: ", verify_result)
 
 if __name__ == "__main__":
     main()
